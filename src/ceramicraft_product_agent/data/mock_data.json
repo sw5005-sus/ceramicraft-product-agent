@@ -1,0 +1,76 @@
+[
+  {
+    "name": "Azure Dragon Teapot",
+    "material": "porcelain",
+    "dimensions": "18cm x 12cm x 14cm",
+    "description_hints": "Hand-painted blue and white dragon motif, traditional Chinese style",
+    "color": "blue and white",
+    "price": "$89.99",
+    "attributes": {
+      "origin": "Jingdezhen",
+      "technique": "hand-painted",
+      "capacity": "500ml",
+      "glaze": "underglaze blue"
+    },
+    "promotion_type": "new_arrival"
+  },
+  {
+    "name": "Minimalist Espresso Cup Set",
+    "material": "stoneware",
+    "dimensions": "6cm x 6cm x 5cm (each)",
+    "description_hints": "Set of 4 matte black espresso cups, modern geometric design",
+    "color": "matte black",
+    "price": "$45.00",
+    "attributes": {
+      "quantity": "4 cups",
+      "technique": "wheel-thrown",
+      "finish": "matte",
+      "dishwasher_safe": "yes"
+    },
+    "promotion_type": "collection"
+  },
+  {
+    "name": "Rustic Farmhouse Serving Platter",
+    "material": "earthenware",
+    "dimensions": "35cm x 25cm x 3cm",
+    "description_hints": "Large oval platter with speckled cream glaze, rustic artisan feel",
+    "color": "cream with brown speckles",
+    "price": "$65.00",
+    "attributes": {
+      "shape": "oval",
+      "technique": "hand-formed",
+      "finish": "reactive glaze",
+      "food_safe": "yes"
+    },
+    "promotion_type": "seasonal"
+  },
+  {
+    "name": "Cherry Blossom Vase",
+    "material": "porcelain",
+    "dimensions": "30cm height x 15cm diameter",
+    "description_hints": "Tall elegant vase with delicate cherry blossom pattern, pink and white",
+    "color": "pink and white",
+    "price": "$120.00",
+    "attributes": {
+      "origin": "Arita, Japan",
+      "technique": "transfer print with hand-finishing",
+      "style": "Japanese traditional"
+    },
+    "promotion_type": "gift_guide"
+  },
+  {
+    "name": "Terracotta Herb Garden Planter",
+    "material": "terracotta",
+    "dimensions": "40cm x 15cm x 12cm",
+    "description_hints": "Rectangular planter with drainage holes, ideal for herbs, natural unglazed",
+    "color": "natural terracotta",
+    "price": "$32.00",
+    "attributes": {
+      "drainage": "yes",
+      "compartments": "3",
+      "indoor_outdoor": "both",
+      "frost_resistant": "no"
+    },
+    "promotion_type": "seasonal"
+  }
+]
