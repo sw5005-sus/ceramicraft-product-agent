@@ -2,12 +2,18 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from fastapi import FastAPI
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 from ceramicraft_product_agent.api.product_api import router as product_router
 from ceramicraft_product_agent.utils.logger import get_logger
 
 logger = get_logger(__name__)
+
+_STATIC_DIR = Path(__file__).parent / "static"
 
 app = FastAPI(
     title="Product Agent – Ceramic Product Enhancement API",
@@ -20,6 +26,13 @@ app = FastAPI(
 )
 
 app.include_router(product_router)
+app.mount("/static", StaticFiles(directory=str(_STATIC_DIR)), name="static")
+
+
+@app.get("/", include_in_schema=False)
+async def index():
+    """Serve the frontend demo page."""
+    return FileResponse(str(_STATIC_DIR / "index.html"))
 
 
 @app.get("/health", tags=["Health"])

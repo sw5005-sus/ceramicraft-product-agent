@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CeramiCraft Product Agent</title>
+<style>
+  :root {
+    --primary: #8B5E3C;
+    --primary-light: #A0764A;
+    --bg: #FAF7F4;
+    --card: #FFFFFF;
+    --border: #E8DDD3;
+    --text: #3D2E1F;
+    --text-light: #7A6B5D;
+    --accent: #C4956A;
+    --success: #5A8F5A;
+    --tag-bg: #F0E6DA;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg); color: var(--text);
+    line-height: 1.6; min-height: 100vh;
+  }
+
+  /* Header */
+  header {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    color: white; padding: 2rem 0; text-align: center;
+  }
+  header h1 { font-size: 1.8rem; font-weight: 600; letter-spacing: 0.5px; }
+  header p { opacity: 0.9; margin-top: 0.3rem; font-size: 0.95rem; }
+
+  /* Layout */
+  .container { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
+  .grid { display: grid; grid-template-columns: 400px 1fr; gap: 2rem; align-items: start; }
+  @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
+
+  /* Card */
+  .card {
+    background: var(--card); border-radius: 12px;
+    border: 1px solid var(--border); padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  .card h2 {
+    font-size: 1.1rem; margin-bottom: 1.2rem; color: var(--primary);
+    border-bottom: 2px solid var(--border); padding-bottom: 0.5rem;
+  }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 0; margin-bottom: 1.5rem; }
+  .tab {
+    flex: 1; padding: 0.6rem; text-align: center; cursor: pointer;
+    border: 1px solid var(--border); background: var(--bg);
+    font-size: 0.9rem; font-weight: 500; color: var(--text-light);
+    transition: all 0.2s;
+  }
+  .tab:first-child { border-radius: 8px 0 0 8px; }
+  .tab:last-child { border-radius: 0 8px 8px 0; }
+  .tab.active {
+    background: var(--primary); color: white;
+    border-color: var(--primary);
+  }
+
+  /* Form */
+  .form-group { margin-bottom: 1rem; }
+  .form-group label {
+    display: block; font-size: 0.85rem; font-weight: 500;
+    margin-bottom: 0.3rem; color: var(--text-light);
+  }
+  input[type="text"], select {
+    width: 100%; padding: 0.55rem 0.75rem; border: 1px solid var(--border);
+    border-radius: 8px; font-size: 0.9rem; background: var(--bg);
+    transition: border-color 0.2s;
+  }
+  input:focus, select:focus { outline: none; border-color: var(--primary); }
+
+  /* Upload area */
+  .upload-area {
+    border: 2px dashed var(--border); border-radius: 12px;
+    padding: 2rem; text-align: center; cursor: pointer;
+    transition: all 0.3s; background: var(--bg);
+  }
+  .upload-area:hover, .upload-area.dragover {
+    border-color: var(--primary); background: var(--tag-bg);
+  }
+  .upload-area .icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+  .upload-area p { color: var(--text-light); font-size: 0.9rem; }
+  .upload-area small { color: var(--text-light); opacity: 0.7; }
+  .upload-area input { display: none; }
+  .preview-img {
+    max-width: 100%; max-height: 200px; border-radius: 8px;
+    margin-top: 0.5rem; object-fit: contain;
+  }
+
+  /* Button */
+  .btn {
+    width: 100%; padding: 0.75rem; border: none; border-radius: 8px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    color: white; font-size: 1rem; font-weight: 600; cursor: pointer;
+    transition: opacity 0.2s; margin-top: 0.5rem;
+  }
+  .btn:hover { opacity: 0.9; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* Results */
+  .results { display: none; }
+  .results.show { display: block; }
+  .result-section { margin-bottom: 1.5rem; }
+  .result-section h3 {
+    font-size: 0.95rem; color: var(--primary); margin-bottom: 0.6rem;
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+  .result-section h3 .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--success); display: inline-block;
+  }
+  .result-text {
+    font-size: 0.9rem; color: var(--text); white-space: pre-wrap;
+    background: var(--bg); padding: 1rem; border-radius: 8px;
+    border: 1px solid var(--border); line-height: 1.7;
+  }
+  .tags { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .tag {
+    background: var(--tag-bg); color: var(--primary); padding: 0.25rem 0.65rem;
+    border-radius: 20px; font-size: 0.8rem; font-weight: 500;
+  }
+  .meta-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;
+  }
+  .meta-item {
+    background: var(--bg); padding: 0.6rem 0.8rem; border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+  .meta-item .label { font-size: 0.75rem; color: var(--text-light); }
+  .meta-item .value { font-size: 0.95rem; font-weight: 600; color: var(--primary); }
+  .promo-headline {
+    font-size: 1.15rem; font-weight: 700; color: var(--text);
+    margin-bottom: 0.4rem;
+  }
+  .promo-short {
+    font-size: 0.95rem; color: var(--text-light); margin-bottom: 0.5rem;
+    font-style: italic;
+  }
+  .cta-btn {
+    display: inline-block; padding: 0.4rem 1.2rem; border-radius: 20px;
+    background: var(--primary); color: white; font-size: 0.85rem;
+    font-weight: 600; margin-top: 0.5rem;
+  }
+
+  /* Loading */
+  .loading { display: none; text-align: center; padding: 3rem; }
+  .loading.show { display: block; }
+  .spinner {
+    width: 40px; height: 40px; border: 3px solid var(--border);
+    border-top-color: var(--primary); border-radius: 50%;
+    animation: spin 0.8s linear infinite; margin: 0 auto 1rem;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading p { color: var(--text-light); font-size: 0.9rem; }
+
+  /* Image analysis */
+  .analysis-box {
+    background: linear-gradient(135deg, #FFF8F0, #FFF3E6);
+    border: 1px solid var(--accent); border-radius: 8px;
+    padding: 1rem; margin-bottom: 1rem;
+  }
+  .analysis-box h4 {
+    font-size: 0.85rem; color: var(--accent); margin-bottom: 0.5rem;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>CeramiCraft Product Agent</h1>
+  <p>AI-Powered Ceramic Product Listing Assistant</p>
+</header>
+
+<div class="container">
+  <div class="grid">
+
+    <!-- Left: Input Panel -->
+    <div class="card">
+      <h2>Product Input</h2>
+
+      <div class="tabs">
+        <div class="tab active" onclick="switchTab('image')">Photo Upload</div>
+        <div class="tab" onclick="switchTab('manual')">Manual Input</div>
+      </div>
+
+      <!-- Image Upload Tab -->
+      <div id="tab-image">
+        <div class="upload-area" id="dropZone" onclick="document.getElementById('fileInput').click()">
+          <div class="icon">&#128247;</div>
+          <p>Click or drag a product photo here</p>
+          <small>JPEG, PNG, WebP (max 10MB)</small>
+          <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp">
+          <img id="previewImg" class="preview-img" style="display:none">
+        </div>
+        <div class="form-group" style="margin-top:1rem">
+          <label>Hints (optional)</label>
+          <input type="text" id="imgHints" placeholder="e.g. handmade tea cup from Jingdezhen">
+        </div>
+      </div>
+
+      <!-- Manual Input Tab -->
+      <div id="tab-manual" style="display:none">
+        <div class="form-group">
+          <label>Product Name *</label>
+          <input type="text" id="name" placeholder="e.g. Azure Dragon Teapot">
+        </div>
+        <div class="form-group">
+          <label>Material</label>
+          <input type="text" id="material" placeholder="e.g. porcelain, stoneware">
+        </div>
+        <div class="form-group">
+          <label>Dimensions</label>
+          <input type="text" id="dimensions" placeholder="e.g. 18cm x 12cm x 14cm">
+        </div>
+        <div class="form-group">
+          <label>Color</label>
+          <input type="text" id="color" placeholder="e.g. blue and white">
+        </div>
+        <div class="form-group">
+          <label>Description Hints</label>
+          <input type="text" id="descHints" placeholder="e.g. hand-painted dragon motif">
+        </div>
+        <div class="form-group">
+          <label>Price</label>
+          <input type="text" id="price" placeholder="e.g. $89.99">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Promotion Type</label>
+        <select id="promoType">
+          <option value="new_arrival">New Arrival</option>
+          <option value="seasonal">Seasonal</option>
+          <option value="discount">Discount Sale</option>
+          <option value="collection">Collection</option>
+          <option value="gift_guide">Gift Guide</option>
+          <option value="flash_sale">Flash Sale</option>
+        </select>
+      </div>
+
+      <button class="btn" id="submitBtn" onclick="submit()">Generate Product Listing</button>
+    </div>
+
+    <!-- Right: Results Panel -->
+    <div>
+      <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p>Gemini is analyzing your product...</p>
+      </div>
+
+      <div class="results" id="results">
+
+        <!-- Image Analysis -->
+        <div class="result-section" id="analysisSection" style="display:none">
+          <div class="card analysis-box">
+            <h4>Image Analysis Result</h4>
+            <div id="analysisContent"></div>
+          </div>
+        </div>
+
+        <!-- Categorization -->
+        <div class="result-section">
+          <div class="card">
+            <h3><span class="dot"></span> Categorization</h3>
+            <div class="meta-grid" id="catMeta"></div>
+            <div style="margin-top:0.8rem">
+              <label style="font-size:0.8rem;color:var(--text-light)">Tags</label>
+              <div class="tags" id="catTags" style="margin-top:0.3rem"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="result-section">
+          <div class="card">
+            <h3><span class="dot"></span> Product Description</h3>
+            <div class="result-text" id="descText"></div>
+            <div style="margin-top:0.8rem">
+              <label style="font-size:0.8rem;color:var(--text-light)">SEO Keywords</label>
+              <div class="tags" id="seoTags" style="margin-top:0.3rem"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Promotion -->
+        <div class="result-section">
+          <div class="card">
+            <h3><span class="dot"></span> Promotional Copy</h3>
+            <div class="promo-headline" id="promoHeadline"></div>
+            <div class="promo-short" id="promoShort"></div>
+            <div class="result-text" id="promoLong"></div>
+            <div class="cta-btn" id="promoCta"></div>
+            <div style="margin-top:0.8rem">
+              <div class="tags" id="promoTags"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Image Prompt -->
+        <div class="result-section">
+          <div class="card">
+            <h3><span class="dot"></span> Image Generation</h3>
+            <div class="meta-grid" style="margin-bottom:0.8rem">
+              <div class="meta-item">
+                <div class="label">Theme</div>
+                <div class="value" id="imgTheme"></div>
+              </div>
+            </div>
+            <div class="result-text" id="imgDesc" style="max-height:200px;overflow-y:auto"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentTab = 'image';
+let selectedFile = null;
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach((t, i) => {
+    t.classList.toggle('active', (i === 0 && tab === 'image') || (i === 1 && tab === 'manual'));
+  });
+  document.getElementById('tab-image').style.display = tab === 'image' ? 'block' : 'none';
+  document.getElementById('tab-manual').style.display = tab === 'manual' ? 'block' : 'none';
+}
+
+// Drag & drop
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+const previewImg = document.getElementById('previewImg');
+
+['dragenter', 'dragover'].forEach(e => dropZone.addEventListener(e, ev => {
+  ev.preventDefault(); dropZone.classList.add('dragover');
+}));
+['dragleave', 'drop'].forEach(e => dropZone.addEventListener(e, ev => {
+  ev.preventDefault(); dropZone.classList.remove('dragover');
+}));
+dropZone.addEventListener('drop', ev => {
+  const file = ev.dataTransfer.files[0];
+  if (file) handleFile(file);
+});
+fileInput.addEventListener('change', ev => {
+  if (ev.target.files[0]) handleFile(ev.target.files[0]);
+});
+
+function handleFile(file) {
+  selectedFile = file;
+  const reader = new FileReader();
+  reader.onload = e => {
+    previewImg.src = e.target.result;
+    previewImg.style.display = 'block';
+    dropZone.querySelector('.icon').style.display = 'none';
+    dropZone.querySelector('p').textContent = file.name;
+    dropZone.querySelector('small').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+async function submit() {
+  const btn = document.getElementById('submitBtn');
+  const loading = document.getElementById('loading');
+  const results = document.getElementById('results');
+
+  btn.disabled = true;
+  btn.textContent = 'Processing...';
+  loading.classList.add('show');
+  results.classList.remove('show');
+
+  try {
+    let data;
+    if (currentTab === 'image' && selectedFile) {
+      const form = new FormData();
+      form.append('image', selectedFile);
+      form.append('description_hints', document.getElementById('imgHints').value);
+      form.append('promotion_type', document.getElementById('promoType').value);
+      const res = await fetch('/product/process-with-image', { method: 'POST', body: form });
+      if (!res.ok) throw new Error(await res.text());
+      data = await res.json();
+    } else {
+      const name = document.getElementById('name').value;
+      if (!name && currentTab === 'manual') { alert('Please enter a product name'); return; }
+      if (!selectedFile && currentTab === 'image') { alert('Please upload a photo'); return; }
+      const body = {
+        name,
+        material: document.getElementById('material').value || 'ceramic',
+        dimensions: document.getElementById('dimensions').value,
+        color: document.getElementById('color').value,
+        description_hints: document.getElementById('descHints').value,
+        price: document.getElementById('price').value,
+        promotion_type: document.getElementById('promoType').value,
+      };
+      const res = await fetch('/product/process', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      data = await res.json();
+    }
+    renderResults(data);
+  } catch (err) {
+    alert('Error: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Generate Product Listing';
+    loading.classList.remove('show');
+  }
+}
+
+function renderResults(d) {
+  const results = document.getElementById('results');
+
+  // Image analysis
+  const analysisSection = document.getElementById('analysisSection');
+  if (d.image_analysis && d.image_analysis.name_suggestion) {
+    analysisSection.style.display = 'block';
+    document.getElementById('analysisContent').innerHTML =
+      `<div class="meta-grid">
+        <div class="meta-item"><div class="label">Detected Name</div><div class="value">${esc(d.image_analysis.name_suggestion)}</div></div>
+        <div class="meta-item"><div class="label">Material</div><div class="value">${esc(d.image_analysis.material)}</div></div>
+        <div class="meta-item"><div class="label">Color</div><div class="value">${esc(d.image_analysis.color)}</div></div>
+        <div class="meta-item"><div class="label">Glaze</div><div class="value">${esc((d.image_analysis.attributes||{}).glaze||'N/A')}</div></div>
+      </div>
+      <p style="margin-top:0.5rem;font-size:0.85rem;color:var(--text-light)">${esc(d.image_analysis.description_hints)}</p>`;
+  } else {
+    analysisSection.style.display = 'none';
+  }
+
+  // Categorization
+  const c = d.categorization;
+  document.getElementById('catMeta').innerHTML =
+    `<div class="meta-item"><div class="label">Category</div><div class="value">${esc(c.category)}</div></div>
+     <div class="meta-item"><div class="label">Style</div><div class="value">${esc(c.style)}</div></div>
+     <div class="meta-item"><div class="label">Confidence</div><div class="value">${(c.confidence * 100).toFixed(0)}%</div></div>`;
+  document.getElementById('catTags').innerHTML = (c.tags||[]).map(t => `<span class="tag">${esc(t)}</span>`).join('');
+
+  // Description
+  document.getElementById('descText').textContent = d.description.text;
+  document.getElementById('seoTags').innerHTML = (d.description.seo_keywords||[]).map(k => `<span class="tag">${esc(k)}</span>`).join('');
+
+  // Promotion
+  document.getElementById('promoHeadline').textContent = d.promotion.headline;
+  document.getElementById('promoShort').textContent = d.promotion.short_text;
+  document.getElementById('promoLong').textContent = d.promotion.long_text;
+  document.getElementById('promoCta').textContent = d.promotion.call_to_action;
+  document.getElementById('promoTags').innerHTML = (d.promotion.hashtags||[]).map(h => `<span class="tag">${esc(h)}</span>`).join('');
+
+  // Image
+  document.getElementById('imgTheme').textContent = d.image.theme;
+  document.getElementById('imgDesc').textContent = d.image.image_description;
+
+  results.classList.add('show');
+}
+
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s || '';
+  return d.innerHTML;
+}
+</script>
+</body>
+</html>
