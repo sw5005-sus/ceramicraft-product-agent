@@ -4,10 +4,11 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel, Field
 
 from ceramicraft_product_agent.service.agent_service import process_product
+from ceramicraft_product_agent.service.image_analysis import analyze_image_with_gemini
 from ceramicraft_product_agent.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -76,10 +77,22 @@ class ImageResult(BaseModel):
     image_url: str | None = None
 
 
+class ImageAnalysisResult(BaseModel):
+    """Image analysis sub-result."""
+
+    name_suggestion: str = ""
+    material: str = ""
+    color: str = ""
+    dimensions_estimate: str = ""
+    description_hints: str = ""
+    attributes: dict[str, str] = {}
+
+
 class ProductResponse(BaseModel):
     """Schema for the /product/process response."""
 
     product_name: str
+    image_analysis: ImageAnalysisResult | None = None
     categorization: CategorizationResult
     description: DescriptionResult
     promotion: PromotionResult
@@ -158,3 +171,90 @@ async def batch_process_endpoint(requests: list[ProductRequest]) -> Any:
             ) from exc
 
     return results
+
+
+ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp", "image/gif"}
+MAX_IMAGE_SIZE = 10 * 1024 * 1024  # 10MB
+
+
+@router.post(
+    "/process-with-image",
+    response_model=ProductResponse,
+    summary="Process a product with an uploaded photo",
+)
+async def process_with_image_endpoint(
+    image: UploadFile = File(..., description="Product photo (JPEG/PNG/WebP)"),
+    name: str = Form(default="", description="Product name (optional, auto-detected from image)"),
+    material: str = Form(default="", description="Material (optional, auto-detected from image)"),
+    dimensions: str = Form(default="", description="Dimensions"),
+    color: str = Form(default="", description="Color"),
+    price: str = Form(default="", description="Price"),
+    description_hints: str = Form(default="", description="Additional hints about the product"),
+    promotion_type: str = Form(default="new_arrival", description="Promotion type"),
+) -> Any:
+    """Process a product with an uploaded sample photo.
+
+    The photo is analyzed by Gemini Vision to extract product attributes
+    (name, material, color, style, etc.), which are then merged with any
+    user-provided fields and fed into the full enhancement pipeline.
+    """
+    # Validate image
+    if image.content_type not in ALLOWED_IMAGE_TYPES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported image type: {image.content_type}. Use JPEG, PNG, or WebP.",
+        )
+
+    image_bytes = await image.read()
+    if len(image_bytes) > MAX_IMAGE_SIZE:
+        raise HTTPException(status_code=400, detail="Image too large. Max 10MB.")
+
+    logger.info(
+        "Received image upload: %s (%s, %d bytes)",
+        image.filename,
+        image.content_type,
+        len(image_bytes),
+    )
+
+    # Step 1: Analyze image with Gemini Vision
+    analysis = analyze_image_with_gemini(
+        image_bytes=image_bytes,
+        content_type=image.content_type or "image/jpeg",
+        user_hints=description_hints,
+    )
+    logger.info("Image analysis result: %s", analysis)
+
+    # Step 2: Merge — user-provided fields take priority, image analysis fills gaps
+    product = {
+        "name": name or analysis.get("name_suggestion", "Ceramic Product"),
+        "material": material or analysis.get("material", "ceramic"),
+        "dimensions": dimensions or analysis.get("dimensions_estimate", ""),
+        "color": color or analysis.get("color", ""),
+        "price": price,
+        "description_hints": " ".join(filter(None, [
+            description_hints,
+            analysis.get("description_hints", ""),
+        ])),
+        "attributes": analysis.get("attributes", {}),
+        "promotion_type": promotion_type,
+    }
+
+    safe_name = product["name"].replace("\n", "").replace("\r", "")[:100]
+    logger.info("Processing product from image: %s", safe_name)
+
+    # Step 3: Run the full pipeline
+    try:
+        result = process_product(
+            product=product,
+            promotion_type=promotion_type,
+        )
+        result["image_analysis"] = analysis
+    except Exception as exc:
+        logger.error(
+            "Product processing failed for %s: %s", safe_name, exc, exc_info=True
+        )
+        raise HTTPException(
+            status_code=500, detail="Product processing failed."
+        ) from exc
+
+    return result
