@@ -35,7 +35,9 @@ def classify_by_rules(product: dict[str, Any]) -> dict[str, Any]:
     searchable = " ".join([
         product.get("name", ""),
         product.get("material", ""),
-        product.get("description_hints", ""),
+        product.get("desc", product.get("description_hints", "")),
+        product.get("capacity", ""),
+        product.get("care_instructions", ""),
         " ".join(product.get("attributes", {}).values())
         if isinstance(product.get("attributes"), dict)
         else str(product.get("attributes", "")),
@@ -86,7 +88,7 @@ def build_categorization_prompt(product: dict[str, Any]) -> str:
     return CATEGORIZATION_PROMPT.format(
         name=product.get("name", "Unknown"),
         material=product.get("material", "Unknown"),
-        description_hints=product.get("description_hints", "None"),
+        description_hints=product.get("desc", product.get("description_hints", "None")),
         dimensions=product.get("dimensions", "Not specified"),
         attributes=json.dumps(product.get("attributes", {})),
         categories=", ".join(CATEGORIES.keys()),

@@ -20,9 +20,11 @@ app = FastAPI(
     description=(
         "AI-powered product listing agent that generates SEO-friendly "
         "descriptions, promotional text, auto-categorization, and themed "
-        "image prompts for ceramic products using Google Gemini."
+        "image prompts for ceramic products using Google Gemini.\n\n"
+        "All /product endpoints require JWT authentication (Bearer token) "
+        "with merchant_admin or product_editor role."
     ),
-    version="1.0.0",
+    version="2.0.0",
 )
 
 app.include_router(product_router)

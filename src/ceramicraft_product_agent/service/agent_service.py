@@ -291,10 +291,29 @@ def process_product(
 
     final_state = cast(_ProductState, _graph.invoke(initial_state))
 
+    # Build commodity-mservice compatible payload
+    categorization = final_state["categorization"]
+    description = final_state["description"]
+    commodity_payload: dict[str, Any] = {
+        "name": product_name,
+        "category": categorization.get("category", product.get("category", "")),
+        "price": product.get("price", 0),
+        "desc": description.get("text", product.get("desc", "")),
+        "stock": product.get("stock", 0),
+        "pic_info": product.get("pic_info", ""),
+        "dimensions": product.get("dimensions", ""),
+        "material": product.get("material", "ceramic"),
+        "weight": product.get("weight", ""),
+        "capacity": product.get("capacity", ""),
+        "care_instructions": product.get("care_instructions", ""),
+        "status": product.get("status", 0),
+    }
+
     result: dict[str, Any] = {
         "product_name": product_name,
-        "categorization": final_state["categorization"],
-        "description": final_state["description"],
+        "commodity_payload": commodity_payload,
+        "categorization": categorization,
+        "description": description,
         "promotion": final_state["promotion"],
         "image": final_state["image"],
     }

@@ -34,7 +34,7 @@
 
   /* Layout */
   .container { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
-  .grid { display: grid; grid-template-columns: 400px 1fr; gap: 2rem; align-items: start; }
+  .grid { display: grid; grid-template-columns: 420px 1fr; gap: 2rem; align-items: start; }
   @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
 
   /* Card */
@@ -64,17 +64,28 @@
   }
 
   /* Form */
-  .form-group { margin-bottom: 1rem; }
+  .form-group { margin-bottom: 0.8rem; }
   .form-group label {
     display: block; font-size: 0.85rem; font-weight: 500;
     margin-bottom: 0.3rem; color: var(--text-light);
   }
-  input[type="text"], select {
+  input[type="text"], input[type="number"], select, textarea {
     width: 100%; padding: 0.55rem 0.75rem; border: 1px solid var(--border);
     border-radius: 8px; font-size: 0.9rem; background: var(--bg);
-    transition: border-color 0.2s;
+    transition: border-color 0.2s; font-family: inherit;
   }
-  input:focus, select:focus { outline: none; border-color: var(--primary); }
+  textarea { resize: vertical; min-height: 50px; }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+
+  /* Auth */
+  .auth-bar {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 1rem 1.5rem; margin-bottom: 1.5rem;
+    display: flex; align-items: center; gap: 1rem;
+  }
+  .auth-bar label { font-size: 0.85rem; font-weight: 600; color: var(--primary); white-space: nowrap; }
+  .auth-bar input { flex: 1; }
 
   /* Upload area */
   .upload-area {
@@ -169,16 +180,29 @@
   .analysis-box h4 {
     font-size: 0.85rem; color: var(--accent); margin-bottom: 0.5rem;
   }
+
+  /* Commodity payload */
+  .payload-json {
+    font-family: 'Consolas', 'Monaco', monospace; font-size: 0.82rem;
+    background: #2D2D2D; color: #E6DB74; padding: 1rem; border-radius: 8px;
+    overflow-x: auto; white-space: pre; line-height: 1.5;
+  }
 </style>
 </head>
 <body>
 
 <header>
   <h1>CeramiCraft Product Agent</h1>
-  <p>AI-Powered Ceramic Product Listing Assistant</p>
+  <p>AI-Powered Ceramic Product Listing Assistant (v2.0)</p>
 </header>
 
 <div class="container">
+  <!-- Auth Token Bar -->
+  <div class="auth-bar">
+    <label>JWT Token:</label>
+    <input type="text" id="jwtToken" placeholder="Bearer token for authentication (required for API calls)">
+  </div>
+
   <div class="grid">
 
     <!-- Left: Input Panel -->
@@ -200,36 +224,64 @@
           <img id="previewImg" class="preview-img" style="display:none">
         </div>
         <div class="form-group" style="margin-top:1rem">
-          <label>Hints (optional)</label>
+          <label>Description / Hints (optional)</label>
           <input type="text" id="imgHints" placeholder="e.g. handmade tea cup from Jingdezhen">
         </div>
       </div>
 
-      <!-- Manual Input Tab -->
+      <!-- Manual Input Tab (aligned with commodity-mservice ProductInfo) -->
       <div id="tab-manual" style="display:none">
         <div class="form-group">
           <label>Product Name *</label>
           <input type="text" id="name" placeholder="e.g. Azure Dragon Teapot">
         </div>
-        <div class="form-group">
-          <label>Material</label>
-          <input type="text" id="material" placeholder="e.g. porcelain, stoneware">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Material</label>
+            <input type="text" id="material" placeholder="e.g. porcelain">
+          </div>
+          <div class="form-group">
+            <label>Category</label>
+            <input type="text" id="category" placeholder="(auto-categorized if empty)">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Price (cents)</label>
+            <input type="number" id="price" placeholder="e.g. 8999">
+          </div>
+          <div class="form-group">
+            <label>Stock</label>
+            <input type="number" id="stock" placeholder="e.g. 50">
+          </div>
         </div>
         <div class="form-group">
-          <label>Dimensions</label>
-          <input type="text" id="dimensions" placeholder="e.g. 18cm x 12cm x 14cm">
+          <label>Description</label>
+          <textarea id="desc" placeholder="e.g. Hand-painted blue dragon motif, traditional Chinese style"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Dimensions</label>
+            <input type="text" id="dimensions" placeholder="e.g. 18cm x 12cm">
+          </div>
+          <div class="form-group">
+            <label>Weight</label>
+            <input type="text" id="weight" placeholder="e.g. 450g">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Capacity</label>
+            <input type="text" id="capacity" placeholder="e.g. 500ml">
+          </div>
+          <div class="form-group">
+            <label>Pic Info</label>
+            <input type="text" id="pic_info" placeholder="Image URLs (JSON)">
+          </div>
         </div>
         <div class="form-group">
-          <label>Color</label>
-          <input type="text" id="color" placeholder="e.g. blue and white">
-        </div>
-        <div class="form-group">
-          <label>Description Hints</label>
-          <input type="text" id="descHints" placeholder="e.g. hand-painted dragon motif">
-        </div>
-        <div class="form-group">
-          <label>Price</label>
-          <input type="text" id="price" placeholder="e.g. $89.99">
+          <label>Care Instructions</label>
+          <input type="text" id="care_instructions" placeholder="e.g. Hand wash only">
         </div>
       </div>
 
@@ -262,6 +314,15 @@
           <div class="card analysis-box">
             <h4>Image Analysis Result</h4>
             <div id="analysisContent"></div>
+          </div>
+        </div>
+
+        <!-- Commodity Payload -->
+        <div class="result-section">
+          <div class="card">
+            <h3><span class="dot"></span> Commodity Service Payload</h3>
+            <p style="font-size:0.8rem;color:var(--text-light);margin-bottom:0.5rem">Ready to send to POST /product-ms/v1/merchant/products</p>
+            <div class="payload-json" id="commodityPayload"></div>
           </div>
         </div>
 
@@ -326,6 +387,13 @@
 let currentTab = 'image';
 let selectedFile = null;
 
+function getAuthHeaders() {
+  const token = document.getElementById('jwtToken').value.trim();
+  const headers = {};
+  if (token) headers['Authorization'] = token.startsWith('Bearer ') ? token : 'Bearer ' + token;
+  return headers;
+}
+
 function switchTab(tab) {
   currentTab = tab;
   document.querySelectorAll('.tab').forEach((t, i) => {
@@ -371,6 +439,7 @@ async function submit() {
   const btn = document.getElementById('submitBtn');
   const loading = document.getElementById('loading');
   const results = document.getElementById('results');
+  const authHeaders = getAuthHeaders();
 
   btn.disabled = true;
   btn.textContent = 'Processing...';
@@ -382,9 +451,11 @@ async function submit() {
     if (currentTab === 'image' && selectedFile) {
       const form = new FormData();
       form.append('image', selectedFile);
-      form.append('description_hints', document.getElementById('imgHints').value);
+      form.append('desc', document.getElementById('imgHints').value);
       form.append('promotion_type', document.getElementById('promoType').value);
-      const res = await fetch('/product/process-with-image', { method: 'POST', body: form });
+      const res = await fetch('/product/process-with-image', {
+        method: 'POST', body: form, headers: authHeaders
+      });
       if (!res.ok) throw new Error(await res.text());
       data = await res.json();
     } else {
@@ -393,16 +464,22 @@ async function submit() {
       if (!selectedFile && currentTab === 'image') { alert('Please upload a photo'); return; }
       const body = {
         name,
-        material: document.getElementById('material').value || 'ceramic',
+        category: document.getElementById('category').value,
+        price: parseInt(document.getElementById('price').value) || 0,
+        desc: document.getElementById('desc').value,
+        stock: parseInt(document.getElementById('stock').value) || 0,
+        pic_info: document.getElementById('pic_info').value,
         dimensions: document.getElementById('dimensions').value,
-        color: document.getElementById('color').value,
-        description_hints: document.getElementById('descHints').value,
-        price: document.getElementById('price').value,
+        material: document.getElementById('material').value || 'ceramic',
+        weight: document.getElementById('weight').value,
+        capacity: document.getElementById('capacity').value,
+        care_instructions: document.getElementById('care_instructions').value,
+        status: 0,
         promotion_type: document.getElementById('promoType').value,
       };
       const res = await fetch('/product/process', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
         body: JSON.stringify(body),
       });
       if (!res.ok) throw new Error(await res.text());
@@ -435,6 +512,11 @@ function renderResults(d) {
       <p style="margin-top:0.5rem;font-size:0.85rem;color:var(--text-light)">${esc(d.image_analysis.description_hints)}</p>`;
   } else {
     analysisSection.style.display = 'none';
+  }
+
+  // Commodity Payload
+  if (d.commodity_payload) {
+    document.getElementById('commodityPayload').textContent = JSON.stringify(d.commodity_payload, null, 2);
   }
 
   // Categorization
