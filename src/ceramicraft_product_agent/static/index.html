@@ -129,6 +129,7 @@
   }
   .result-text {
     font-size: 0.9rem; color: var(--text); white-space: pre-wrap;
+    word-break: break-word; overflow-wrap: anywhere;
     background: var(--bg); padding: 1rem; border-radius: 8px;
     border: 1px solid var(--border); line-height: 1.7;
   }
@@ -185,7 +186,8 @@
   .payload-json {
     font-family: 'Consolas', 'Monaco', monospace; font-size: 0.82rem;
     background: #2D2D2D; color: #E6DB74; padding: 1rem; border-radius: 8px;
-    overflow-x: auto; white-space: pre; line-height: 1.5;
+    white-space: pre-wrap; word-break: break-word; overflow-wrap: anywhere;
+    line-height: 1.5; max-height: 400px; overflow-y: auto;
   }
 </style>
 </head>

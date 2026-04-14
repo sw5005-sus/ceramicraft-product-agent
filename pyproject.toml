@@ -17,6 +17,14 @@ dependencies = [
     "pillow>=10.0.0",
     "python-multipart>=0.0.9",
     "PyJWT>=2.8.0",
+    "python-dotenv>=1.0.0",
+    "mlflow-skinny>=3.11.1",
+    "opentelemetry-sdk>=1.40.0",
+    "opentelemetry-exporter-otlp>=1.40.0",
+    "opentelemetry-distro>=0.61b0",
+    "opentelemetry-instrumentation-logging>=0.61b0",
+    "opentelemetry-instrumentation-fastapi>=0.61b0",
+    "opentelemetry-instrumentation-httpx>=0.61b0",
 ]
 
 [dependency-groups]

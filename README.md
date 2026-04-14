@@ -212,6 +212,40 @@ uv run pytest tests/ -v
 
 ---
 
+## Observability
+
+### OpenTelemetry (log / trace / metric)
+
+The service is wired to emit OTLP telemetry. In Docker it auto-starts via
+`opentelemetry-instrument`, so no code changes are needed to enable tracing —
+just set the endpoint at deploy time:
+
+| Env var | Purpose |
+|---|---|
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | Collector endpoint, e.g. `http://grafana-alloy.monitoring.svc.cluster.local:4317` |
+| `OTEL_SERVICE_NAME` | Service name (default `ceramicraft-product-agent`) |
+| `OTEL_PYTHON_LOG_CORRELATION` | Inject `trace_id` / `span_id` into log lines (default `true`) |
+
+Log lines include trace correlation fields:
+```
+2026-04-14T10:00:00 INFO [ceramicraft_product_agent.service.agent_service] [trace_id=4f2a... span_id=9b81...] - Starting product processing pipeline for: Azure Dragon Teapot
+```
+
+### MLflow LLM tracing
+
+Every LangGraph node and each Gemini invocation is recorded as an MLflow trace
+span (latency, prompt length, fallback flag). Disabled by default — opt in with:
+
+```bash
+export ENABLE_MLFLOW_TRACING=true
+export MLFLOW_TRACKING_URI=http://mlflow.example:5000
+export MLFLOW_EXPERIMENT_NAME=product-agent-llm-traces   # optional
+```
+
+When disabled, `@trace` is a no-op (zero overhead, safe for CI / local dev).
+
+---
+
 ## Docker
 
 ```bash
@@ -219,6 +253,9 @@ docker build -t ceramicraft-product-agent .
 docker run -p 8001:8001 \
   -e GOOGLE_API_KEY=your_key \
   -e JWT_SECRET=your_secret \
+  -e OTEL_EXPORTER_OTLP_ENDPOINT=http://grafana-alloy:4317 \
+  -e ENABLE_MLFLOW_TRACING=true \
+  -e MLFLOW_TRACKING_URI=http://mlflow:5000 \
   ceramicraft-product-agent
 ```
 

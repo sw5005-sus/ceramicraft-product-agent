@@ -45,6 +45,7 @@ from ceramicraft_product_agent.service.promotion_gen import (
     parse_promotion_response,
 )
 from ceramicraft_product_agent.utils.logger import get_logger
+from ceramicraft_product_agent.utils.mlflow_trace import safe_update_trace, trace
 
 logger = get_logger(__name__)
 
@@ -90,16 +91,20 @@ def _get_llm() -> ChatGoogleGenerativeAI | None:
     return _llm
 
 
+@trace("gemini_llm_invoke")
 def _invoke_llm(prompt: str) -> str | None:
     """Invoke the Gemini LLM with a prompt. Returns None on failure."""
     llm = _get_llm()
     if llm is None:
+        safe_update_trace({"llm_available": False, "fallback": True})
         return None
     try:
         response = llm.invoke([HumanMessage(content=prompt)])
+        safe_update_trace({"llm_available": True, "prompt_len": len(prompt)})
         return str(response.content)
     except Exception as exc:
         logger.warning("Gemini API call failed: %s", exc)
+        safe_update_trace({"llm_available": True, "error": str(exc), "fallback": True})
         return None
 
 
@@ -108,6 +113,7 @@ def _invoke_llm(prompt: str) -> str | None:
 # ---------------------------------------------------------------------------
 
 
+@trace("categorize")
 def _categorize_node(state: _ProductState) -> dict[str, Any]:
     """Node: classify the product into category and style."""
     product = state["product"]
@@ -132,6 +138,7 @@ def _categorize_node(state: _ProductState) -> dict[str, Any]:
     return {"categorization": categorization}
 
 
+@trace("generate_description")
 def _generate_description_node(state: _ProductState) -> dict[str, Any]:
     """Node: generate SEO-friendly product description."""
     product = {**state["product"], **state["categorization"]}
@@ -163,6 +170,7 @@ def _generate_description_node(state: _ProductState) -> dict[str, Any]:
     }
 
 
+@trace("generate_promotion")
 def _generate_promotion_node(state: _ProductState) -> dict[str, Any]:
     """Node: generate promotional text for the product."""
     product = {**state["product"], **state["categorization"]}
@@ -185,6 +193,7 @@ def _generate_promotion_node(state: _ProductState) -> dict[str, Any]:
     return {"promotion": promotion}
 
 
+@trace("generate_image")
 def _generate_image_node(state: _ProductState) -> dict[str, Any]:
     """Node: generate a themed image prompt for the product."""
     product = {**state["product"], **state["categorization"]}
@@ -251,6 +260,7 @@ _graph = _builder.compile()
 # ---------------------------------------------------------------------------
 
 
+@trace("process_product")
 def process_product(
     product: dict[str, Any],
     promotion_type: str = "new_arrival",

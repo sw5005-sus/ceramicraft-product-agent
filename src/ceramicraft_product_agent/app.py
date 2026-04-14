@@ -4,7 +4,11 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from dotenv import load_dotenv
 from fastapi import FastAPI
+
+# Auto-load .env from project root if present (for local dev)
+load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 

@@ -12,6 +12,7 @@ import json
 from typing import Any
 
 from ceramicraft_product_agent.utils.logger import get_logger
+from ceramicraft_product_agent.utils.mlflow_trace import trace
 
 logger = get_logger(__name__)
 
@@ -41,6 +42,7 @@ Respond STRICTLY in the following JSON format (no markdown, no extra text):
 """
 
 
+@trace("gemini_vision_analyze")
 def analyze_image_with_gemini(
     image_bytes: bytes,
     content_type: str,
