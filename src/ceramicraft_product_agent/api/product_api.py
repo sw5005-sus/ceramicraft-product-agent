@@ -26,17 +26,27 @@ class ProductRequest(BaseModel):
     """Schema aligned with commodity-mservice ProductInfo fields."""
 
     name: str = Field(..., description="Product name")
-    category: str = Field(default="", description="Product category (auto-categorized if empty)")
+    category: str = Field(
+        default="", description="Product category (auto-categorized if empty)"
+    )
     price: int = Field(default=0, description="Product price in cents (int64)")
-    desc: str = Field(default="", description="Product description or hints for generation")
+    desc: str = Field(
+        default="", description="Product description or hints for generation"
+    )
     stock: int = Field(default=0, description="Stock quantity")
     pic_info: str = Field(default="", description="Product image URLs (JSON string)")
-    dimensions: str = Field(default="", description="Product dimensions (e.g. '10cm x 8cm')")
+    dimensions: str = Field(
+        default="", description="Product dimensions (e.g. '10cm x 8cm')"
+    )
     material: str = Field(default="ceramic", description="Primary material")
     weight: str = Field(default="", description="Product weight")
     capacity: str = Field(default="", description="Product capacity (e.g. '500ml')")
-    care_instructions: str = Field(default="", description="Care and maintenance instructions")
-    status: int = Field(default=0, description="Product status: 0=unpublished, 1=published")
+    care_instructions: str = Field(
+        default="", description="Care and maintenance instructions"
+    )
+    status: int = Field(
+        default=0, description="Product status: 0=unpublished, 1=published"
+    )
     promotion_type: str = Field(
         default="new_arrival",
         description="Promotion type: new_arrival, seasonal, discount, collection, gift_guide, flash_sale",
@@ -149,7 +159,11 @@ async def process_product_endpoint(
     creation, and image prompt generation for a ceramic product.
     """
     safe_name = request.name.replace("\n", "").replace("\r", "")[:100]
-    logger.info("Received product processing request for: %s (user: %s)", safe_name, user.get("user_id"))
+    logger.info(
+        "Received product processing request for: %s (user: %s)",
+        safe_name,
+        user.get("user_id"),
+    )
     try:
         result = process_product(
             product=request.model_dump(),
@@ -179,7 +193,11 @@ async def batch_process_endpoint(
     user: dict = Depends(require_roles("merchant_admin", "product_editor")),
 ) -> Any:
     """Process multiple products through the enhancement pipeline."""
-    logger.info("Received batch request for %d products (user: %s)", len(requests), user.get("user_id"))
+    logger.info(
+        "Received batch request for %d products (user: %s)",
+        len(requests),
+        user.get("user_id"),
+    )
     results = []
     for req in requests:
         safe_name = req.name.replace("\n", "").replace("\r", "")[:100]
@@ -210,8 +228,12 @@ MAX_IMAGE_SIZE = 10 * 1024 * 1024  # 10MB
 )
 async def process_with_image_endpoint(
     image: UploadFile = File(..., description="Product photo (JPEG/PNG/WebP)"),
-    name: str = Form(default="", description="Product name (optional, auto-detected from image)"),
-    category: str = Form(default="", description="Product category (optional, auto-categorized)"),
+    name: str = Form(
+        default="", description="Product name (optional, auto-detected from image)"
+    ),
+    category: str = Form(
+        default="", description="Product category (optional, auto-categorized)"
+    ),
     price: int = Form(default=0, description="Price in cents"),
     desc: str = Form(default="", description="Description or hints"),
     stock: int = Form(default=0, description="Stock quantity"),
@@ -264,10 +286,15 @@ async def process_with_image_endpoint(
         "name": name or analysis.get("name_suggestion", "Ceramic Product"),
         "category": category,
         "price": price,
-        "desc": " ".join(filter(None, [
-            desc,
-            analysis.get("description_hints", ""),
-        ])),
+        "desc": " ".join(
+            filter(
+                None,
+                [
+                    desc,
+                    analysis.get("description_hints", ""),
+                ],
+            )
+        ),
         "stock": stock,
         "pic_info": pic_info,
         "dimensions": dimensions or analysis.get("dimensions_estimate", ""),

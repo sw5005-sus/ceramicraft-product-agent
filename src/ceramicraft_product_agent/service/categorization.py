@@ -32,16 +32,18 @@ def classify_by_rules(product: dict[str, Any]) -> dict[str, Any]:
 
     Returns a dict with category, style, tags, and confidence.
     """
-    searchable = " ".join([
-        product.get("name", ""),
-        product.get("material", ""),
-        product.get("desc", product.get("description_hints", "")),
-        product.get("capacity", ""),
-        product.get("care_instructions", ""),
-        " ".join(product.get("attributes", {}).values())
-        if isinstance(product.get("attributes"), dict)
-        else str(product.get("attributes", "")),
-    ]).lower()
+    searchable = " ".join(
+        [
+            product.get("name", ""),
+            product.get("material", ""),
+            product.get("desc", product.get("description_hints", "")),
+            product.get("capacity", ""),
+            product.get("care_instructions", ""),
+            " ".join(product.get("attributes", {}).values())
+            if isinstance(product.get("attributes"), dict)
+            else str(product.get("attributes", "")),
+        ]
+    ).lower()
 
     # Score each category
     category_scores: dict[str, int] = {}
@@ -119,7 +121,12 @@ def parse_categorization_response(response_text: str) -> dict[str, Any]:
         }
     except (json.JSONDecodeError, KeyError, TypeError) as exc:
         logger.warning("Failed to parse LLM categorization response: %s", exc)
-        return {"category": "vases_decor", "style": "traditional", "tags": [], "confidence": 0.3}
+        return {
+            "category": "vases_decor",
+            "style": "traditional",
+            "tags": [],
+            "confidence": 0.3,
+        }
 
 
 @tool

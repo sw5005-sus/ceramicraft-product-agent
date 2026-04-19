@@ -57,6 +57,10 @@ FALLBACK_PROMOTION = {
     ),
     "call_to_action": "Shop Now",
     "hashtags": [
-        "#CeramiCraft", "#Ceramics", "#{category}", "#{style}", "#HandmadeCeramics"
+        "#CeramiCraft",
+        "#Ceramics",
+        "#{category}",
+        "#{style}",
+        "#HandmadeCeramics",
     ],
 }

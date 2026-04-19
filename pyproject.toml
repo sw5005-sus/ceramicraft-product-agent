@@ -45,7 +45,7 @@ target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "S", "I"]
-ignore = ["D100"]
+ignore = ["D100", "E501"]
 
 [build-system]
 requires = ["hatchling"]

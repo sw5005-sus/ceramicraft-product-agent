@@ -29,9 +29,9 @@ def build_promotion_prompt(product: dict[str, Any], promotion_type: str) -> str:
 
     return PROMOTION_PROMPT.format(
         name=product.get("name", "Unknown"),
-        category=CATEGORIES.get(
-            product.get("category", ""), {}
-        ).get("display_name", product.get("category", "Ceramic")),
+        category=CATEGORIES.get(product.get("category", ""), {}).get(
+            "display_name", product.get("category", "Ceramic")
+        ),
         style=product.get("style", "traditional"),
         material=product.get("material", "ceramic"),
         price=product.get("price", "N/A"),
@@ -62,9 +62,9 @@ def parse_promotion_response(response_text: str) -> dict[str, Any]:
 
 def build_fallback_promotion(product: dict[str, Any]) -> dict[str, Any]:
     """Generate template-based promotional content when Gemini is unavailable."""
-    cat_display = CATEGORIES.get(
-        product.get("category", ""), {}
-    ).get("display_name", product.get("category", "ceramics"))
+    cat_display = CATEGORIES.get(product.get("category", ""), {}).get(
+        "display_name", product.get("category", "ceramics")
+    )
 
     fmt_kwargs = {
         "name": product.get("name", "Ceramic Piece"),

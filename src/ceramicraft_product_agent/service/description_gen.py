@@ -14,9 +14,9 @@ from langchain_core.tools import tool
 
 from ceramicraft_product_agent.templates.categorization import CATEGORIES
 from ceramicraft_product_agent.templates.description import (
+    DESCRIPTION_PROMPT,
     FALLBACK_DESCRIPTION,
     SEO_KEYWORDS_PROMPT,
-    DESCRIPTION_PROMPT,
 )
 from ceramicraft_product_agent.utils.logger import get_logger
 
@@ -73,9 +73,9 @@ def build_description_prompt(product: dict[str, Any], seo_keywords: list[str]) -
     """Build the Gemini prompt for description generation."""
     return DESCRIPTION_PROMPT.format(
         name=product.get("name", "Unknown"),
-        category=CATEGORIES.get(
-            product.get("category", ""), {}
-        ).get("display_name", product.get("category", "Ceramic")),
+        category=CATEGORIES.get(product.get("category", ""), {}).get(
+            "display_name", product.get("category", "Ceramic")
+        ),
         style=product.get("style", "traditional"),
         material=product.get("material", "ceramic"),
         dimensions=product.get("dimensions", "Not specified"),
@@ -87,9 +87,9 @@ def build_description_prompt(product: dict[str, Any], seo_keywords: list[str]) -
 
 def build_fallback_description(product: dict[str, Any]) -> str:
     """Generate a template-based description when Gemini is unavailable."""
-    cat_display = CATEGORIES.get(
-        product.get("category", ""), {}
-    ).get("display_name", product.get("category", "ceramic"))
+    cat_display = CATEGORIES.get(product.get("category", ""), {}).get(
+        "display_name", product.get("category", "ceramic")
+    )
 
     return FALLBACK_DESCRIPTION.format(
         name=product.get("name", "Ceramic Piece"),

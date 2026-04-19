@@ -13,7 +13,7 @@ class TestClassifyByRules:
         product = {
             "name": "Azure Dragon Teapot",
             "material": "porcelain",
-            "description_hints": "traditional Chinese teapot",
+            "desc": "traditional Chinese teapot gaiwan infuser kettle",
         }
         result = classify_by_rules(product)
         assert result["category"] == "tea_sets"
@@ -23,7 +23,7 @@ class TestClassifyByRules:
         product = {
             "name": "Minimalist Coffee Mug",
             "material": "stoneware",
-            "description_hints": "modern mug for coffee",
+            "desc": "modern mug for coffee",
         }
         result = classify_by_rules(product)
         assert result["category"] == "drinkware"
@@ -32,7 +32,7 @@ class TestClassifyByRules:
         product = {
             "name": "Rustic Serving Platter",
             "material": "earthenware",
-            "description_hints": "large plate for serving dinner",
+            "desc": "large plate for serving dinner",
         }
         result = classify_by_rules(product)
         assert result["category"] == "dinnerware"
@@ -41,7 +41,7 @@ class TestClassifyByRules:
         product = {
             "name": "Cherry Blossom Vase",
             "material": "porcelain",
-            "description_hints": "decorative flower vase",
+            "desc": "decorative flower vase",
         }
         result = classify_by_rules(product)
         assert result["category"] == "vases_decor"
@@ -50,7 +50,7 @@ class TestClassifyByRules:
         product = {
             "name": "Terracotta Herb Garden Planter",
             "material": "terracotta",
-            "description_hints": "garden planter for herbs outdoor",
+            "desc": "garden planter for herbs outdoor",
         }
         result = classify_by_rules(product)
         assert result["category"] == "garden_outdoor"
@@ -68,7 +68,7 @@ class TestClassifyByRules:
         product = {
             "name": "plate bowl dish platter saucer dinner soup salad serving tureen",
             "material": "porcelain",
-            "description_hints": "many keywords",
+            "desc": "many keywords",
         }
         result = classify_by_rules(product)
         assert len(result["tags"]) <= 8

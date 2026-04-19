@@ -1,21 +1,22 @@
 """Tests for the agent service pipeline."""
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 from ceramicraft_product_agent.service.agent_service import process_product
-
 
 SAMPLE_PRODUCT = {
     "name": "Azure Dragon Teapot",
     "material": "porcelain",
     "dimensions": "18cm x 12cm x 14cm",
-    "description_hints": "Hand-painted blue and white dragon motif, traditional Chinese style",
-    "color": "blue and white",
-    "price": "$89.99",
-    "attributes": {
-        "origin": "Jingdezhen",
-        "technique": "hand-painted",
-    },
+    "desc": "Hand-painted blue and white dragon motif, traditional Chinese style",
+    "price": 8999,
+    "stock": 50,
+    "pic_info": "",
+    "weight": "450g",
+    "capacity": "500ml",
+    "care_instructions": "Hand wash only",
+    "category": "",
+    "status": 0,
 }
 
 
@@ -32,6 +33,11 @@ class TestProcessProduct:
         assert "description" in result
         assert "promotion" in result
         assert "image" in result
+        assert "commodity_payload" in result
+        payload = result["commodity_payload"]
+        assert payload["name"] == "Azure Dragon Teapot"
+        assert payload["price"] == 8999
+        assert payload["material"] == "porcelain"
 
     def test_categorization_result_structure(self):
         """Categorization result should contain required fields."""

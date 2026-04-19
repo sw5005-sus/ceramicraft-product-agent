@@ -120,9 +120,9 @@ def build_image_prompt(product: dict[str, Any], theme: str | None = None) -> str
         theme = select_theme(product)
 
     theme_config = THEMES.get(theme, THEMES["minimalist"])
-    cat_display = CATEGORIES.get(
-        product.get("category", ""), {}
-    ).get("display_name", product.get("category", "ceramic piece"))
+    cat_display = CATEGORIES.get(product.get("category", ""), {}).get(
+        "display_name", product.get("category", "ceramic piece")
+    )
 
     # Select camera angle based on product type
     angle_map = {

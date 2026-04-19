@@ -6,14 +6,14 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 from fastapi import FastAPI
-
-# Auto-load .env from project root if present (for local dev)
-load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from ceramicraft_product_agent.api.product_api import router as product_router
 from ceramicraft_product_agent.utils.logger import get_logger
+
+# Auto-load .env from project root if present (for local dev)
+load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 
 logger = get_logger(__name__)
 
@@ -55,6 +55,4 @@ if __name__ == "__main__":
     host = os.getenv("HOST", "127.0.0.1")
     port = int(os.getenv("PORT", 8001))
     logger.info("Starting Product Agent API server on %s:%s ...", host, port)
-    uvicorn.run(
-        "ceramicraft_product_agent.app:app", host=host, port=port, reload=False
-    )
+    uvicorn.run("ceramicraft_product_agent.app:app", host=host, port=port, reload=False)
