@@ -13,6 +13,7 @@ from ceramicraft_product_agent.grpc_client.commodity_client import (
 from ceramicraft_product_agent.middleware.auth import require_roles
 from ceramicraft_product_agent.service.agent_service import process_product
 from ceramicraft_product_agent.service.image_analysis import analyze_image_with_gemini
+from ceramicraft_product_agent.service.s3_upload import upload_image
 from ceramicraft_product_agent.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -276,7 +277,15 @@ async def process_with_image_endpoint(
         user.get("user_id"),
     )
 
-    # Step 1: Analyze image with Gemini Vision
+    # Step 1: Upload image to S3
+    image_id = ""
+    try:
+        image_id = upload_image(image_bytes, image.content_type or "image/jpeg")
+        logger.info("Image uploaded to S3: %s", image_id)
+    except Exception as exc:
+        logger.warning("S3 upload failed, continuing without image: %s", exc)
+
+    # Step 2: Analyze image with Gemini Vision
     analysis = analyze_image_with_gemini(
         image_bytes=image_bytes,
         content_type=image.content_type or "image/jpeg",
@@ -284,7 +293,8 @@ async def process_with_image_endpoint(
     )
     logger.info("Image analysis result: %s", analysis)
 
-    # Step 2: Merge — user-provided fields take priority, image analysis fills gaps
+    # Step 3: Merge — user-provided fields take priority, image analysis fills gaps
+    merged_pic_info = pic_info or (f'["{image_id}"]' if image_id else "")
     product = {
         "name": name or analysis.get("name_suggestion", "Ceramic Product"),
         "category": category,
@@ -299,7 +309,7 @@ async def process_with_image_endpoint(
             )
         ),
         "stock": stock,
-        "pic_info": pic_info,
+        "pic_info": merged_pic_info,
         "dimensions": dimensions or analysis.get("dimensions_estimate", ""),
         "material": material or analysis.get("material", "ceramic"),
         "weight": weight,
