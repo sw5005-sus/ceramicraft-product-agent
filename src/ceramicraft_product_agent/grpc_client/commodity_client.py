@@ -83,4 +83,5 @@ def create_product(payload: dict[str, Any], editor_id: int = 0) -> dict[str, Any
         "weight": response.weight,
         "capacity": response.capacity,
         "care_instructions": response.careInstructions,
+        "status": 0,
     }
