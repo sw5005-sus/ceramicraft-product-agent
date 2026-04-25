@@ -7,6 +7,9 @@ from typing import Any
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel, Field
 
+from ceramicraft_product_agent.grpc_client.commodity_client import (
+    create_product as grpc_create_product,
+)
 from ceramicraft_product_agent.middleware.auth import require_roles
 from ceramicraft_product_agent.service.agent_service import process_product
 from ceramicraft_product_agent.service.image_analysis import analyze_image_with_gemini
@@ -325,3 +328,68 @@ async def process_with_image_endpoint(
         ) from exc
 
     return result
+
+
+# ---------------------------------------------------------------------------
+# Process + Save to commodity-mservice via gRPC
+# ---------------------------------------------------------------------------
+
+
+class SavedProductResponse(BaseModel):
+    """Response for process-and-save: includes AI content + DB record."""
+
+    product_name: str
+    product_id: int
+    commodity_payload: CommodityProductPayload
+    categorization: CategorizationResult
+    description: DescriptionResult
+    promotion: PromotionResult
+    image: ImageResult
+
+
+@router.post(
+    "/process-and-save",
+    response_model=SavedProductResponse,
+    summary="Process product and save to commodity service",
+)
+async def process_and_save_endpoint(
+    request: ProductRequest,
+    user: dict = Depends(require_roles("merchant_admin", "product_editor")),
+) -> Any:
+    """Generate AI content and save the product to commodity-mservice via gRPC.
+
+    Full pipeline: Gemini enhancement -> gRPC CreateProduct -> return with DB id.
+    """
+    safe_name = request.name.replace("\n", "").replace("\r", "")[:100]
+    editor_id = int(user.get("user_id", 0))
+    logger.info("Process-and-save for: %s (user: %s)", safe_name, editor_id)
+
+    try:
+        result = process_product(
+            product=request.model_dump(),
+            promotion_type=request.promotion_type,
+        )
+    except Exception as exc:
+        logger.error("Pipeline failed for %s: %s", safe_name, exc, exc_info=True)
+        raise HTTPException(
+            status_code=500, detail="Product processing failed."
+        ) from exc
+
+    try:
+        saved = grpc_create_product(result["commodity_payload"], editor_id=editor_id)
+    except Exception as exc:
+        logger.error("gRPC CreateProduct failed: %s", exc, exc_info=True)
+        raise HTTPException(
+            status_code=502,
+            detail=f"Product generated but failed to save: {exc}",
+        ) from exc
+
+    return {
+        "product_name": result["product_name"],
+        "product_id": saved["id"],
+        "commodity_payload": saved,
+        "categorization": result["categorization"],
+        "description": result["description"],
+        "promotion": result["promotion"],
+        "image": result["image"],
+    }
