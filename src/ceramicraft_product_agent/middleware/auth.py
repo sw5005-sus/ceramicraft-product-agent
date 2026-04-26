@@ -1,8 +1,9 @@
-"""JWT authentication middleware.
+"""Authentication middleware.
 
-Compatible with ceramicraft-user-mservice JWT tokens.
-Reads JWT_SECRET from environment and verifies Bearer tokens
-in the Authorization header.
+Supports two auth modes:
+1. JWT Bearer token (Authorization header) — for direct API calls
+2. Traefik X-Original-User-ID header — for requests via cluster ingress
+   (Traefik's zitadel-auth middleware verifies the session and injects the user ID)
 """
 
 from __future__ import annotations
@@ -11,7 +12,7 @@ import os
 from typing import Any
 
 import jwt
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from ceramicraft_product_agent.utils.logger import get_logger
@@ -22,19 +23,11 @@ _bearer_scheme = HTTPBearer(auto_error=False)
 
 
 def _get_jwt_secret() -> str:
-    """Return the JWT secret from environment."""
     secret = os.environ.get("JWT_SECRET", "")
-    if not secret:
-        logger.warning("JWT_SECRET not set — authentication will reject all requests.")
     return secret
 
 
 def decode_token(token: str) -> dict[str, Any]:
-    """Decode and verify a JWT token.
-
-    Returns the decoded payload dict.
-    Raises HTTPException on invalid/expired tokens.
-    """
     secret = _get_jwt_secret()
     if not secret:
         raise HTTPException(
@@ -57,30 +50,34 @@ def decode_token(token: str) -> dict[str, Any]:
 
 
 async def get_current_user(
+    request: Request,
     credentials: HTTPAuthorizationCredentials | None = Depends(_bearer_scheme),
 ) -> dict[str, Any]:
-    """FastAPI dependency that extracts and verifies the JWT token.
+    """Extract user identity from either JWT or Traefik header.
 
-    Returns the decoded user payload containing user_id, roles, etc.
+    Priority:
+    1. X-Original-User-ID header (set by Traefik zitadel-auth middleware)
+    2. Authorization: Bearer <JWT> header (direct API calls)
     """
-    if credentials is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Missing authorization header.",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    return decode_token(credentials.credentials)
+    traefik_user_id = request.headers.get("X-Original-User-ID")
+    if traefik_user_id:
+        logger.info("Authenticated via Traefik header: user_id=%s", traefik_user_id)
+        return {
+            "user_id": traefik_user_id,
+            "role": "merchant_admin",
+        }
+
+    if credentials is not None:
+        return decode_token(credentials.credentials)
+
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Missing authorization header.",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
 
 
 def require_roles(*allowed_roles: str):
-    """Return a FastAPI dependency that enforces role-based access control.
-
-    Usage:
-        @router.post("/endpoint")
-        async def handler(user: dict = Depends(require_roles("merchant_admin", "product_editor"))):
-            ...
-    """
-
     async def _check_roles(
         user: dict[str, Any] = Depends(get_current_user),
     ) -> dict[str, Any]:
