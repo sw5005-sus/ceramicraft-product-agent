@@ -31,16 +31,18 @@ app = FastAPI(
 )
 
 app.include_router(product_router)
-app.mount("/static", StaticFiles(directory=str(_STATIC_DIR)), name="static")
+app.mount(
+    "/product-agent/static", StaticFiles(directory=str(_STATIC_DIR)), name="static"
+)
 
 
-@app.get("/", include_in_schema=False)
+@app.get("/product-agent", include_in_schema=False)
 async def index():
     """Serve the frontend demo page."""
     return FileResponse(str(_STATIC_DIR / "index.html"))
 
 
-@app.get("/health", tags=["Health"])
+@app.get("/product-agent/health", tags=["Health"])
 async def health_check() -> dict[str, str]:
     """Return a simple health-check response."""
     return {"status": "ok"}

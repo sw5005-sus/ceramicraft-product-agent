@@ -18,7 +18,7 @@ from ceramicraft_product_agent.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
-router = APIRouter(prefix="/product", tags=["Product"])
+router = APIRouter(prefix="/product-agent/product", tags=["Product"])
 
 
 # ---------------------------------------------------------------------------
