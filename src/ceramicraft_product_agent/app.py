@@ -18,7 +18,6 @@ load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 logger = get_logger(__name__)
 
 _STATIC_DIR = Path(__file__).parent / "static"
-
 app = FastAPI(
     title="Product Agent – Ceramic Product Enhancement API",
     description=(
