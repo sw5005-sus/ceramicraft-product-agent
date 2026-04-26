@@ -24,7 +24,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PATH="/app/.venv/bin:$PATH" \
     HOST=0.0.0.0 \
-    PORT=8001 \
+    PORT=8080 \
     MLFLOW_SERVER_ENABLE_JOB_EXECUTION=false \
     MLFLOW_SERVER_JOB_ALLOWLIST="" \
     OTEL_SERVICE_NAME=ceramicraft-product-agent \
@@ -42,7 +42,7 @@ COPY --from=builder --chown=appuser:appgroup /app/src /app/src
 
 USER appuser
 
-EXPOSE 8001
+EXPOSE 8080
 
 # Launch via opentelemetry-instrument to auto-inject traces/metrics/logs
 # into OTLP exporter (OTEL_EXPORTER_OTLP_ENDPOINT env var configured at deploy time).
